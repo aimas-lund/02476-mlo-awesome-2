@@ -1,0 +1,4 @@
+outs:
+- md5: 40351d587109b95175f43aff81a1287e
+  size: 31035526
+  path: test_batch
