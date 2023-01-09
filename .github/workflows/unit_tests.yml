@@ -30,7 +30,13 @@ jobs:
         pip install pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f requirements_tests.txt ]; then pip install -r requirements_tests.txt; fi
-        
+
+    - uses: iterative/setup-dvc@v1
+    - name: Get training- and testing data from DVC
+      run: dvc pull
+      env:
+        GDRIVE_CREDENTIALS_DATA: $
+
     - name: Test with pytest
       run: |
         pytest -v
