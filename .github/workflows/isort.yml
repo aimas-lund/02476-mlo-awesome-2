@@ -1,0 +1,21 @@
+name: Sorting import calls
+
+on:
+  - push
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+        os: [ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: isort/isort-action@master
+        with:
+            requirementsFiles: "requirements.txt requirements-test.txt"
