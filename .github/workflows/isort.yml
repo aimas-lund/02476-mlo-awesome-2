@@ -16,6 +16,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: isort/isort-action@main
+      - uses: isort/isort-action@master
         with:
             requirementsFiles: "requirements.txt requirements-test.txt"
