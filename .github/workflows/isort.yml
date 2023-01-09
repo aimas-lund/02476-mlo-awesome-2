@@ -1,14 +1,10 @@
 name: Sorting import calls
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  - push
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -16,15 +12,10 @@ jobs:
         os: [ubuntu-latest]
 
     steps:
-    - name: Checkout action
-      uses: actions/checkout@v3
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Sort import calls
-      run: |
-        pip install isort
-        isort .
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: isort/isort-action@main
+        with:
+            requirementsFiles: "requirements.txt requirements-test.txt"
