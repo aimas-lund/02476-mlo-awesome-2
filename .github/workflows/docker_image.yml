@@ -11,8 +11,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: |
-        echo "$" | docker login \
+        docker login \
           -u "${{ secrets.DOCKER_HUB_USERNAME }}" -p ${{ secrets.DOCKER_HUB_TOKEN }}
         docker build . --file trainer.dockerfile \
-          --tag docker.io/${{ secrets.DOCKER_HUB_REPOSITORY }}/trainer:$GITHUB_SHA
-        docker push docker.io/${{ secrets.DOCKER_HUB_REPOSITORY }}/trainer:$GITHUB_SHA
+          --tag docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:$GITHUB_SHA
+        docker push docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:$GITHUB_SHA
