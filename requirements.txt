@@ -12,8 +12,8 @@ pytorch-lightning==1.8.1
 dvc>=2.10.2
 # dvc[gdrive]
 dvc[gs]
-numpy>=1.23.5
-matplotlib>=3.6.2
+numpy
+matplotlib
 wandb
 hydra-core
 pytest
