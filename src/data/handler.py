@@ -1,8 +1,18 @@
 import pickle
-import torch
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import torch
+from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
 from torch.utils.data import Dataset
+from torchvision import datasets, transforms
+from torchvision.transforms import (
+    Compose,
+    Normalize,
+    RandomCrop,
+    RandomHorizontalFlip,
+    ToTensor,
+)
 
 from src.data import _PATH_DATA
 
@@ -34,9 +44,30 @@ class CIFAR10Dataset(Dataset):
             -1, col_dim, x_dim, y_dim
         )
         self.targets = torch.tensor(np.concatenate([c["labels"] for c in content]))
+        if train:
+            self.transform = transforms.Compose(
+                [
+                    transforms.RandomCrop(32, padding=4),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToPILImage(),
+                    transforms.ToTensor(),
+                    cifar10_normalization(),
+                ]
+            )
+        else:
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.ToTensor(),
+                    cifar10_normalization(),
+                ]
+            )
 
     def __len__(self) -> int:
         return self.targets.numel()
 
     def __getitem__(self, idx: int):
-        return self.data[idx].float(), self.targets[idx]
+        data, target = self.data[idx].float(), self.targets[idx]
+        if self.transform:
+            data = self.transform(data)
+        return data, target
