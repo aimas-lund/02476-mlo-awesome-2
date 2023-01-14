@@ -1,7 +1,6 @@
 # from make_dataset3 import cifar10
 import numpy as np
 import torch
-from src.data.handler import CIFAR10Dataset
 
 
 def validation(model, loss_func, dataloader, device):

@@ -11,17 +11,15 @@ import timm
 import timm.optim
 import torch
 from src.data.handler import CIFAR10Dataset
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION, predict_model
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
 
-from predict_model import validation
-
 log = logging.getLogger(__name__)
 
 
-@hydra.main(config_name="config.yaml")
+@hydra.main(config_name="config.yaml", config_path="./")
 def run(cfg):
     log.info(f"Running with config: {cfg}")
 
