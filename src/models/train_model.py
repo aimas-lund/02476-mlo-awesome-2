@@ -11,7 +11,8 @@ import timm
 import timm.optim
 import torch
 from src.data.handler import CIFAR10Dataset
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION, predict_model
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.models.predict_model import validation
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
