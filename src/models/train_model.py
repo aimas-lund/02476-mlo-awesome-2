@@ -1,171 +1,52 @@
-import sys
-import argparse
-import os
-import copy
+import logging
+from copy import deepcopy
+from datetime import datetime
+from typing import List, Union
+
 import hydra
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 import timm
 import timm.optim
-
-# from timm.data.transforms_factory import create_transform
 import torch
+from predict_model import validation
 from torch import nn, optim
-import torch.nn.functional as F
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Dataset, ConcatDataset, DataLoader
-from src.data.handler import CIFAR10Dataset
-from predict_model import validation_
-import seaborn as sns
 from torch.optim import lr_scheduler
-import numpy as np
-import logging
+from torch.utils.data import DataLoader, random_split
 
-import matplotlib.pyplot as plt
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.data.handler import CIFAR10Dataset
 
 log = logging.getLogger(__name__)
-pp = os.getcwd()
-print("see path: ", pp)
 
 
-@hydra.main(config_path=pp + "\src\config", config_name="config.yaml")
-def main(cfg):
-    dataloader_train = CIFAR10Dataset(train=True)
-    images = []
-    labels = []
-    for image, label in dataloader_train:
-        images.append(image)
-        labels.append(label)
-    images = torch.stack(images, dim=0)
-    labels = torch.FloatTensor(labels)
+@hydra.main(config_name="config.yaml")
+def run(cfg):
+    log.info(f"Running with config: {cfg}")
 
-    _train, _val = train_test_split(dataloader_train, test_size=0.3, random_state=666)
-
-    train_loader_cifar10 = DataLoader(
-        _train, batch_size=cfg.params.batch_size, shuffle=True
-    )
-    val_loader_cifar10 = DataLoader(
-        _val, batch_size=cfg.params.batch_size, shuffle=True
-    )
-
-    for i, data in enumerate(train_loader_cifar10, 0):
-        # get the inputs
-        inputs, labels = data
-        labels = labels.reshape(-1, 1)
-        inputs = np.array(inputs)
-        if i % 500 == 0:
-            print("i:", i, " input: ", inputs.shape, " labels: ", labels.shape)
-        # TEST DATASET FOR FINAL PREDICTION
-        dataloader_test = CIFAR10Dataset(train=False)
-        test_loader_cifar10 = DataLoader(
-            dataloader_test, batch_size=cfg.params.batch_size, shuffle=True
-        )
-
-    # dataloader_train, dataloader_val,images,labels,train_loader_cifar10,val_loader_cifar10 = cifar10()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    log.info(f"Running on: {device}")
 
-    # Training Function
-    def train_(model, optmizer, loss_func, train_loader, device):
-        log.info("Started model training")
-        train_loss = 0.0
-        train_correct = 0
-        size_sampler = len(train_loader.sampler)
+    log.info("Initializing datasets and data loaders")
+    training_dataset = CIFAR10Dataset(train=True)
+    test_dataset = CIFAR10Dataset(train=False)
+    train_split, validation_split = random_split(
+        training_dataset, [int(0.9 * training_dataset.N), int(0.1 * training_dataset.N)]
+    )
 
-        for i, (images, labels) in enumerate(train_loader, 0):
+    training_dataloader = DataLoader(
+        train_split, batch_size=cfg.params.batch_size, shuffle=True
+    )
+    validation_dataloader = DataLoader(
+        validation_split, batch_size=cfg.params.batch_size, shuffle=True
+    )
 
-            # Pushing to device (cuda or CPU)
-            images, labels = images.to(device), labels.to(device)
+    test_dataloader = DataLoader(
+        test_dataset, batch_size=cfg.params.batch_size, shuffle=True
+    )
 
-            # zeroing gradients
-            optmizer.zero_grad()
-
-            # feedforward
-            y_hat = model(images)
-
-            # Compute loss
-            loss = loss_func(y_hat, labels.long().squeeze())
-
-            # Compute backpropagation
-            loss.backward()
-
-            # updating weights
-            optmizer.step()
-
-            # loss and correct values compute
-            train_loss += loss.item() * images.size(0)
-            _, pred = torch.max(y_hat.data, 1)
-            train_correct += sum(pred == labels.long().squeeze()).sum().item()
-
-        return np.round(train_loss / size_sampler, 4), np.round(
-            train_correct * 100.0 / size_sampler, 3
-        )
-
-    # running the model
-    def train_model(
-        model,
-        optmizer,
-        loss_func,
-        scheduler,
-        train_loader,
-        val_loader,
-        epochs,
-        device,
-        log=True,
-    ):
-
-        best_acc = 0
-        print("Initializing Training...")
-
-        history = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
-
-        for i in range(epochs):
-
-            train_loss, train_acc = train_(
-                model, optmizer, loss_func, train_loader, device
-            )
-            val_loss, val_acc = validation_(
-                model, loss_func, val_loader_cifar10, device
-            )
-
-            scheduler.step()
-
-            if val_acc > best_acc:
-                print(
-                    f">> Saving Best Model with Val Acc: Old: {best_acc} | New: {val_acc}"
-                )
-                best_model = copy.deepcopy(model)
-                best_acc = val_acc
-
-            if log and ((i + 1) % 2 == 0):
-                print(
-                    f"> Epochs: {i+1}/{epochs} - Train Loss: {train_loss} - Train Acc: {train_acc} - Val Loss: {val_loss} - Val Acc: {val_acc}"
-                )
-
-            # Saving infos on a history dict
-            for key, value in zip(history, [train_loss, val_loss, train_acc, val_acc]):
-                history[key].append(value)
-
-        print("...End Training")
-
-        return history, best_model
-
-    def plot_history(history):
-
-        # Ploting the Loss and Accuracy Curves
-        fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))
-
-        # Loss
-        sns.lineplot(data=history["train_loss"], label="Training Loss", ax=ax[0])
-        sns.lineplot(data=history["val_loss"], label="Validation Loss", ax=ax[0])
-        ax[0].legend(loc="upper right")
-        ax[0].set_title("Loss")
-        # Accuracy
-        sns.lineplot(data=history["train_acc"], label="Training Accuracy", ax=ax[1])
-        sns.lineplot(data=history["val_acc"], label="Validation Accuracy", ax=ax[1])
-        ax[1].legend(loc="lower right")
-        ax[1].set_title("Accuracy")
-        plt.savefig("training.png")  # CHANGE THIS PATH
-
-    # Execute training
-
+    log.info(f"Initializing model: {cfg.params.model}")
     model = timm.create_model(
         cfg.params.model,
         pretrained=True,
@@ -175,31 +56,139 @@ def main(cfg):
 
     model = model.to(device)
 
-    optmizer = optim.Adam(model.parameters(), lr=cfg.params.learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=cfg.params.learning_rate)
     loss_func = nn.CrossEntropyLoss()
-    scheduler = lr_scheduler.StepLR(optmizer, step_size=5, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
     history, best_model = train_model(
         model=model,
-        optmizer=optmizer,
+        optimizer=optimizer,
         loss_func=loss_func,
         scheduler=scheduler,
-        train_loader=train_loader_cifar10,
-        val_loader=val_loader_cifar10,
+        train_loader=training_dataloader,
+        val_loader=validation_dataloader,
         epochs=cfg.params.epochs,
         device=device,
     )
 
-    torch.save(best_model.state_dict(), "best_model.pth")
+    # Saving model state dict
+    datetime_now = datetime.now()
+    datetime_str = datetime_now.strftime("%m-%d-%Y-%H-%M-%S")
+    state_dict_filename = cfg.params.model + "-" + datetime_str + ".pth"
+    state_dict_path = _PATH_MODELS / state_dict_filename
+    log.info(f'Saving state dict as "{state_dict_filename}" ')
+    torch.save(best_model.state_dict(), state_dict_path.resolve())
 
     # ploting results
     plot_history(history)
     torch.load("best_model.pth")
-    test_loss, test_accuracy = validation_(
-        best_model, loss_func, test_loader_cifar10, device
+    test_loss, test_accuracy = validation(
+        best_model, loss_func, test_dataloader, device
     )
-    print("test_loss: ", test_loss, " test accuracy: ", test_accuracy)
+    log.info("test_loss: ", test_loss, " test accuracy: ", test_accuracy)
+
+
+# Training Function
+def train(
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    loss_func: torch.nn.Module,
+    train_loader: torch.utils.data.DataLoader,
+    device: torch.device,
+) -> Union[float, float]:
+    log.info("Started model training")
+    train_loss = 0.0
+    train_correct = 0
+    size_sampler = len(train_loader.sampler)
+
+    for images, labels in train_loader:
+
+        # Pushing to device (cuda or CPU)
+        images, labels = images.to(device), labels.to(device)
+
+        optimizer.zero_grad()
+        y_hat = model(images)
+
+        # Compute loss
+        loss = loss_func(y_hat, labels.long().squeeze())
+
+        loss.backward()
+        optimizer.step()
+
+        # loss and correct values compute
+        train_loss += loss.item() * images.size(0)
+        _, pred = torch.max(y_hat.data, 1)
+        train_correct += sum(pred == labels.long().squeeze()).sum().item()
+
+    return np.round(train_loss / size_sampler, 4), np.round(
+        train_correct * 100.0 / size_sampler, 3
+    )
+
+
+# running the model
+def train_model(
+    model: torch.nn.Module,
+    optimizer: torch.optim.Optimizer,
+    loss_func: torch.nn.Module,
+    scheduler,
+    train_loader: torch.utils.data.DataLoader,
+    val_loader: torch.utils.data.DataLoader,
+    epochs: int,
+    device: torch.device,
+) -> Union[dict[str, List], torch.nn.Module]:
+
+    best_acc = 0
+    log.info("Initializing training...")
+
+    history = {"train_loss": [], "val_loss": [], "train_acc": [], "val_acc": []}
+
+    for e in range(epochs):
+
+        train_loss, train_acc = train(model, optimizer, loss_func, train_loader, device)
+        val_loss, val_acc = validation(model, loss_func, val_loader, device)
+
+        scheduler.step()
+
+        if val_acc > best_acc:
+            log.info(
+                f">> Saving Best Model with Val Acc: Old: {best_acc} | New: {val_acc}"
+            )
+            best_model = deepcopy(model)
+            best_acc = val_acc
+
+        if (e + 1) % 2 == 0:
+            log.info(
+                f"> Epochs: {e+1}/{epochs} - Train Loss: {train_loss} - Train Acc: {train_acc} - Val Loss: {val_loss} - Val Acc: {val_acc}"
+            )
+
+        # Saving infos on a history dict
+        for key, value in zip(history, [train_loss, val_loss, train_acc, val_acc]):
+            history[key].append(value)
+
+    log.info("Ended training!")
+
+    return history, best_model
+
+
+def plot_history(history: dict[str, List]) -> None:
+
+    # Ploting the Loss and Accuracy Curves
+    _, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))
+
+    # Loss
+    sns.lineplot(data=history["train_loss"], label="Training Loss", ax=ax[0])
+    sns.lineplot(data=history["val_loss"], label="Validation Loss", ax=ax[0])
+    ax[0].legend(loc="upper right")
+    ax[0].set_title("Loss")
+    # Accuracy
+    sns.lineplot(data=history["train_acc"], label="Training Accuracy", ax=ax[1])
+    sns.lineplot(data=history["val_acc"], label="Validation Accuracy", ax=ax[1])
+    ax[1].legend(loc="lower right")
+    ax[1].set_title("Accuracy")
+
+    plot_filename = _PATH_VISUALIZATION / "model_training.png"
+    plt.savefig(plot_filename.resolve())  # CHANGE THIS PATH
 
 
 if __name__ == "__main__":
-    main()
+    run()

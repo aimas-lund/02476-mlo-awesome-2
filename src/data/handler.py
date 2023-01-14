@@ -3,16 +3,10 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
+
+# from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
 from torch.utils.data import Dataset
-from torchvision import datasets, transforms
-from torchvision.transforms import (
-    Compose,
-    Normalize,
-    RandomCrop,
-    RandomHorizontalFlip,
-    ToTensor,
-)
+from torchvision import transforms
 
 from src.data import _PATH_DATA
 
@@ -27,6 +21,7 @@ class CIFAR10Dataset(Dataset):
             data_files = [
                 Path(_PATH_DATA) / "cifar-10" / f"data_batch_{i}" for i in range(1, 6)
             ]
+
         else:
             data_files = [Path(_PATH_DATA) / "cifar-10" / "test_batch"]
 
@@ -40,10 +35,14 @@ class CIFAR10Dataset(Dataset):
                 clean_dict[key.decode()] = data_dict[key]
             content.append(clean_dict)
 
-        self.data = torch.tensor(np.concatenate([c["data"] for c in content])).reshape(
-            -1, col_dim, x_dim, y_dim
+        self.data = (
+            torch.tensor(np.concatenate([c["data"] for c in content]))
+            .reshape(-1, col_dim, x_dim, y_dim)
+            .float()
         )
         self.targets = torch.tensor(np.concatenate([c["labels"] for c in content]))
+        self.N = self.data.size()[0]
+
         if train:
             self.transform = transforms.Compose(
                 [
@@ -51,7 +50,9 @@ class CIFAR10Dataset(Dataset):
                     transforms.RandomHorizontalFlip(),
                     transforms.ToPILImage(),
                     transforms.ToTensor(),
-                    cifar10_normalization(),
+                    transforms.Normalize(
+                        self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
+                    ),
                 ]
             )
         else:
@@ -59,7 +60,9 @@ class CIFAR10Dataset(Dataset):
                 [
                     transforms.ToPILImage(),
                     transforms.ToTensor(),
-                    cifar10_normalization(),
+                    transforms.Normalize(
+                        self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
+                    ),
                 ]
             )
 

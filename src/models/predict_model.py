@@ -5,12 +5,12 @@ import torch
 from src.data.handler import CIFAR10Dataset
 
 
-def validation_(model, loss_func, dataloader, device):
+def validation(model, loss_func, dataloader, device):
     val_loss = 0.0
     val_correct = 0
     size_sampler = len(dataloader.sampler)
     with torch.no_grad():
-        for i, (images, labels) in enumerate(dataloader):
+        for images, labels in dataloader:
 
             images, labels = images.to(device), labels.to(device)
             y_hat = model(images)
