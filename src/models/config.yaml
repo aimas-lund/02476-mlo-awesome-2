@@ -1,0 +1,10 @@
+    paths:
+    log_path: os.getcwd()+"\src\runs"
+    params:
+      model: 'resnet10t'
+      epochs: 2
+      in_chans: 3
+      num_classes: 10
+      learning_rate: 1e-3
+      batch_size: 32
+      optimizer: optim.SGD(model.parameters())

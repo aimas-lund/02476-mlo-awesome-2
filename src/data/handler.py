@@ -1,8 +1,10 @@
 import pickle
-import torch
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import torch
 from torch.utils.data import Dataset
+from torchvision import transforms
 
 from src.data import _PATH_DATA
 
@@ -17,6 +19,7 @@ class CIFAR10Dataset(Dataset):
             data_files = [
                 Path(_PATH_DATA) / "cifar-10" / f"data_batch_{i}" for i in range(1, 6)
             ]
+
         else:
             data_files = [Path(_PATH_DATA) / "cifar-10" / "test_batch"]
 
@@ -30,13 +33,42 @@ class CIFAR10Dataset(Dataset):
                 clean_dict[key.decode()] = data_dict[key]
             content.append(clean_dict)
 
-        self.data = torch.tensor(np.concatenate([c["data"] for c in content])).reshape(
-            -1, col_dim, x_dim, y_dim
+        self.data = (
+            torch.tensor(np.concatenate([c["data"] for c in content]))
+            .reshape(-1, col_dim, x_dim, y_dim)
+            .float()
         )
         self.targets = torch.tensor(np.concatenate([c["labels"] for c in content]))
+        self.N = self.data.size()[0]
+
+        if train:
+            self.transform = transforms.Compose(
+                [
+                    transforms.RandomCrop(32, padding=4),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToPILImage(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
+                    ),
+                ]
+            )
+        else:
+            self.transform = transforms.Compose(
+                [
+                    transforms.ToPILImage(),
+                    transforms.ToTensor(),
+                    transforms.Normalize(
+                        self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
+                    ),
+                ]
+            )
 
     def __len__(self) -> int:
         return self.targets.numel()
 
     def __getitem__(self, idx: int):
-        return self.data[idx].float(), self.targets[idx]
+        data, target = self.data[idx].float(), self.targets[idx]
+        if self.transform:
+            data = self.transform(data)
+        return data, target
