@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 from datetime import datetime
-from typing import List, Union
+from typing import Any, Dict, List, Tuple
 
 import hydra
 import matplotlib.pyplot as plt
@@ -10,13 +10,13 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
-from predict_model import validation
+from src.data.handler import CIFAR10Dataset
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
 
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION
-from src.data.handler import CIFAR10Dataset
+from predict_model import validation
 
 log = logging.getLogger(__name__)
 
@@ -81,11 +81,11 @@ def run(cfg):
 
     # ploting results
     plot_history(history)
-    torch.load("best_model.pth")
+    torch.load(state_dict_path)
     test_loss, test_accuracy = validation(
         best_model, loss_func, test_dataloader, device
     )
-    log.info("test_loss: ", test_loss, " test accuracy: ", test_accuracy)
+    log.info(f"test loss: {test_loss}, test accuracy: {test_accuracy}")
 
 
 # Training Function
@@ -95,8 +95,7 @@ def train(
     loss_func: torch.nn.Module,
     train_loader: torch.utils.data.DataLoader,
     device: torch.device,
-) -> Union[float, float]:
-    log.info("Started model training")
+) -> Tuple[Any, Any]:
     train_loss = 0.0
     train_correct = 0
     size_sampler = len(train_loader.sampler)
@@ -135,7 +134,7 @@ def train_model(
     val_loader: torch.utils.data.DataLoader,
     epochs: int,
     device: torch.device,
-) -> Union[dict[str, List], torch.nn.Module]:
+) -> Tuple[Dict[str, List[Any]], torch.nn.Module]:
 
     best_acc = 0
     log.info("Initializing training...")
@@ -170,7 +169,7 @@ def train_model(
     return history, best_model
 
 
-def plot_history(history: dict[str, List]) -> None:
+def plot_history(history: Dict[str, List[Any]]) -> None:
 
     # Ploting the Loss and Accuracy Curves
     _, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))

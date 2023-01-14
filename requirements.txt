@@ -18,3 +18,4 @@ wandb
 hydra-core
 pytest
 timm
+seaborn
