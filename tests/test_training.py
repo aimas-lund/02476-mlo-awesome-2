@@ -1,3 +1,5 @@
+import pytest
+
 from src.models import train_model
 
 @pytest.mark.xfail
