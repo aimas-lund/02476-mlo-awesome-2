@@ -18,3 +18,14 @@ def test_resnet10_training():
         except Exception as e:
             assert False, f"Exception raised during training: {e}"
     context.stop_test()
+
+
+def test_unsupported_model_training():
+    context = ModelTestContext('Ub3Rl33TM0d31')
+
+    context.start_test()
+    with pytest.raises(RuntimeError):
+        with initialize(version_base=None, config_path="./"):
+            cfg = compose(config_name="config.yaml")
+            train_model.train_model(cfg)
+    context.stop_test()
