@@ -10,18 +10,24 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
-from src.data.handler import CIFAR10Dataset
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION
-from src.models.predict_model import validation
+from omegaconf import DictConfig
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
 
+from src.data.handler import CIFAR10Dataset
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.models.predict_model import validation
+
 log = logging.getLogger(__name__)
 
 
-@hydra.main(config_name="config.yaml", config_path="./")
-def run(cfg):
+@hydra.main(version_base=None, config_name="config.yaml", config_path="./")
+def train(cfg: DictConfig) -> None:
+    train_model(cfg)
+
+
+def train_model(cfg: DictConfig) -> None:
     log.info(f"Running with config: {cfg}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -59,7 +65,7 @@ def run(cfg):
     loss_func = nn.CrossEntropyLoss()
     scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
-    history, best_model = train_model(
+    history, best_model = _initiate_training(
         model=model,
         optimizer=optimizer,
         loss_func=loss_func,
@@ -88,7 +94,7 @@ def run(cfg):
 
 
 # Training Function
-def train(
+def _training_step(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     loss_func: torch.nn.Module,
@@ -124,7 +130,7 @@ def train(
 
 
 # running the model
-def train_model(
+def _initiate_training(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     loss_func: torch.nn.Module,
@@ -142,7 +148,9 @@ def train_model(
 
     for e in range(epochs):
 
-        train_loss, train_acc = train(model, optimizer, loss_func, train_loader, device)
+        train_loss, train_acc = _training_step(
+            model, optimizer, loss_func, train_loader, device
+        )
         val_loss, val_acc = validation(model, loss_func, val_loader, device)
 
         scheduler.step()
@@ -189,4 +197,4 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
 
 
 if __name__ == "__main__":
-    run()
+    train()
