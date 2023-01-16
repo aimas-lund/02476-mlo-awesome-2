@@ -1,5 +1,7 @@
-import os
+from pathlib import Path
 
-_TEST_ROOT = os.path.dirname(__file__)  # root of test folder
-_PROJECT_ROOT = os.path.dirname(_TEST_ROOT)  # root of project
-_PATH_DATA = os.path.join(_PROJECT_ROOT, "data")  # root of data
+_DIR_ROOT = Path(__file__).parent
+_PROJECT_ROOT = _DIR_ROOT.parent
+_PATH_DATA = _PROJECT_ROOT / "data"
+_PATH_VISUALIZATION = _PROJECT_ROOT / "src" / "visualization"
+_PATH_MODELS = _PROJECT_ROOT / "src" / "models"

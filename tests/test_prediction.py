@@ -1,6 +1,8 @@
 import pytest
 import torch
 
+from tests import _PATH_MODELS
+
 
 @pytest.mark.xfail
 def test_input_output_dims():
