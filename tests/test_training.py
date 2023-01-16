@@ -7,6 +7,7 @@ from tests.utils import ModelTestContext
 
 
 def test_resnet10_training():
+    ## A end-to-end model training test of the resnet10 model, using hydra.
     context = ModelTestContext("resnet10t")
 
     context.start_test()
@@ -21,6 +22,7 @@ def test_resnet10_training():
 
 
 def test_unsupported_model_training():
+    ## An edge-case test where an unsupported model is specified to be trained.
     context = ModelTestContext("Ub3Rl33TM0d31")
 
     context.start_test()

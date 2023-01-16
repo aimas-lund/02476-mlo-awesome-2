@@ -8,7 +8,11 @@ from tests import _DIR_ROOT, _PATH_MODELS, _PATH_TRAINED_MODELS
 
 
 class ModelTestContext:
-
+    """
+    A class designed to handle tasks associated with unit tests. 
+    Functionalities involve creating config files for hydra specifically taylored for unit testing,
+    and clean-up of files, such as .yaml and .pth files, that are generated from performing unit tests.
+    """
     log = logging.getLogger(__name__)
 
     def __init__(self, model_type: str, config_filename: str = "config.yaml") -> None:

@@ -21,13 +21,32 @@ from src.models.predict_model import validation
 
 log = logging.getLogger(__name__)
 
-
 @hydra.main(version_base=None, config_name="config.yaml", config_path="./")
 def train(cfg: DictConfig) -> None:
+    """
+    Calls the train_models function, with an attached hydra annotation.
+    
+    Args:
+        cfg: A DictConfig type parsed from .yaml config file via the hydra library.
+
+    Returns:
+
+    """
     train_model(cfg)
 
 
 def train_model(cfg: DictConfig) -> None:
+    """
+    A function that trains a given model from the timm-library using the DictConfig class (can be generated via a hydra config file).
+    This fuction fetches CIFAR10 dataset from the /data directory, makes a train/validation split and trains the specified model.
+    Finally, the function saves the weights and biases in the /models directory.
+
+    Args:
+        cfg: A DictConfig type parsed from .yaml config file via the hydra library.
+
+    Returns:
+    
+    """
     log.info(f"Running with config: {cfg}")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -101,6 +120,19 @@ def _training_step(
     train_loader: torch.utils.data.DataLoader,
     device: torch.device,
 ) -> Tuple[Any, Any]:
+    """
+    Carries out a training step for a given model 
+
+    Args:
+        model: A torch deep learning model
+        optimizer: A torch optimizer
+        loss_func: A torch loss function
+        train_loader: A torch Dataloader set to load training data
+        device: Indicator of whether the model should be trained utilising CPU og GPU
+
+    Returns:
+        A tuple containing the calculated batch training loss and training accuracy.
+    """
     train_loss = 0.0
     train_correct = 0
     size_sampler = len(train_loader.sampler)
@@ -140,7 +172,25 @@ def _initiate_training(
     epochs: int,
     device: torch.device,
 ) -> Tuple[Dict[str, List[Any]], torch.nn.Module]:
+    """
+    A function that start training the model. It compares the best model in the training session with historic
+    models and saves the new model configuration, if a better performance is achieved.
 
+    Args:
+        model: A torch deep learning model
+        optimizer: A torch optimizer
+        loss_func: A torch loss function
+        scheduler: A torch Scheduler class
+        train_loader: A torch Dataloader to load training data
+        val_loader: A torch Dataloader to load test data
+        epochs: An integer of the number of epochs
+        device: Indicator of whether the model should be trained utilising CPU og GPU
+
+    Returns:
+        A tuple containing:
+        - Historical performance of the model
+        - The best performing model configuration from the training
+    """
     best_acc = 0
     log.info("Initializing training...")
 
