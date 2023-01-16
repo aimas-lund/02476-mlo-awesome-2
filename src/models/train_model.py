@@ -21,7 +21,7 @@ from omegaconf import DictConfig
 log = logging.getLogger(__name__)
 
 
-@hydra.main(config_name="config.yaml", config_path="./")
+@hydra.main(version_base=None, config_name="config.yaml", config_path="./")
 def train(cfg: DictConfig) -> None:
     train_model(cfg)
 

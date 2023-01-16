@@ -1,6 +1,5 @@
 import yaml
 from typing import List, Any
-from hydra import initialize
 
 from tests import _PATH_MODELS
 
