@@ -10,13 +10,14 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
-from src.data.handler import CIFAR10Dataset
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION
-from src.models.predict_model import validation
+from omegaconf import DictConfig
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
-from omegaconf import DictConfig
+
+from src.data.handler import CIFAR10Dataset
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.models.predict_model import validation
 
 log = logging.getLogger(__name__)
 
@@ -147,7 +148,9 @@ def _initiate_training(
 
     for e in range(epochs):
 
-        train_loss, train_acc = _training_step(model, optimizer, loss_func, train_loader, device)
+        train_loss, train_acc = _training_step(
+            model, optimizer, loss_func, train_loader, device
+        )
         val_loss, val_acc = validation(model, loss_func, val_loader, device)
 
         scheduler.step()

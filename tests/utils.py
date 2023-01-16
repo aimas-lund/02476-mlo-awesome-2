@@ -1,16 +1,17 @@
-import yaml
-import os
-from typing import List, Any
 import logging
+import os
+from typing import Any, List
 
-from tests import _PATH_MODELS, _DIR_ROOT, _PATH_TRAINED_MODELS
+import yaml
+
+from tests import _DIR_ROOT, _PATH_MODELS, _PATH_TRAINED_MODELS
 
 
-class ModelTestContext():
+class ModelTestContext:
 
     log = logging.getLogger(__name__)
 
-    def __init__(self, model_type: str, config_filename: str="config.yaml") -> None:
+    def __init__(self, model_type: str, config_filename: str = "config.yaml") -> None:
         self.model_type = model_type
         self.original_config = None
         self.config_file = _PATH_MODELS / config_filename
@@ -38,7 +39,7 @@ class ModelTestContext():
             }
         }
 
-    def _write_config_file(self, restore_config: bool=False) -> None:
+    def _write_config_file(self, restore_config: bool = False) -> None:
 
         content = self.original_config if restore_config else self.test_config
 
@@ -50,20 +51,20 @@ class ModelTestContext():
         os.remove(self.test_config_file)
 
         # delete saves weights and biases from training
-        files = [file for file in os.listdir(_PATH_TRAINED_MODELS.resolve()) if file.endswith(".pth")]
+        files = [
+            file
+            for file in os.listdir(_PATH_TRAINED_MODELS.resolve())
+            if file.endswith(".pth")
+        ]
 
         for f in files:
             os.remove(os.path.join(_PATH_TRAINED_MODELS.resolve(), f))
-        
 
     def start_test(self) -> None:
         self._write_config_file(restore_config=False)
 
-
     def stop_test(self) -> None:
         self._file_cleanup()
-
-
 
 
 if __name__ == "__main__":
