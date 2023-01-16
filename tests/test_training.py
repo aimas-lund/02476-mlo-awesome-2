@@ -10,7 +10,7 @@ def test_resnet10_training():
     context = ModelTestContext('resnet10t')
 
     context.start_test()
-    with initialize(version_base=None, config_path="../src/models"):
+    with initialize(version_base=None, config_path="./"):
         try:
             cfg = compose(config_name="config.yaml")
             train_model.train_model(cfg)
