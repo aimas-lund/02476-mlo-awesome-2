@@ -97,7 +97,7 @@ def train_model(cfg: DictConfig) -> None:
 
     # Saving model state dict
     datetime_now = datetime.now()
-    datetime_str = datetime_now.strftime("%m-%d-%Y-%H-%M-%S")
+    datetime_str = datetime_now.strftime("%Y-%m-%d-%H-%M-%S")
     state_dict_filename = cfg.params.model + "-" + datetime_str + ".pth"
     state_dict_path = _PATH_MODELS / state_dict_filename
     log.info(f'Saving state dict as "{state_dict_filename}" ')
