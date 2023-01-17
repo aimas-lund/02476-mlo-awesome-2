@@ -1,7 +1,8 @@
 # from make_dataset3 import cifar10
 import numpy as np
 import torch
-
+import timm
+from src.models import _PATH_MODELS
 
 def validation(model, loss_func, dataloader, device):
     val_loss = 0.0
@@ -21,3 +22,28 @@ def validation(model, loss_func, dataloader, device):
     return np.round(val_loss / size_sampler, 4), np.round(
         val_correct * 100.0 / size_sampler, 3
     )
+
+
+class PredictModel():
+    
+    def __init__(
+        self,
+        model_name: str,
+        num_classes: int,
+        checkpoint_path: str,
+    ) -> None:
+        
+        device = torch.device("cpu")
+        self.model_name = model_name
+        self.checkpoint_path = checkpoint_path
+        self.model = timm.create_model(
+            model_name=model_name,
+            pretrained=False,
+            checkpoint_path=checkpoint_path,
+            num_classes=num_classes,
+        ).to(device)
+
+
+    def predict(self, img: torch.Tensor) -> int:
+        predictions = self.model(img)
+        return predictions
