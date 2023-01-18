@@ -2,9 +2,12 @@ import pickle
 from pathlib import Path
 
 import numpy as np
+import os
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
+from torchvision.utils import save_image
+from typing import Tuple, Any
 
 from src.data import _PATH_DATA
 
@@ -52,8 +55,6 @@ class CIFAR10Dataset(Dataset):
                 [
                     transforms.RandomCrop(32, padding=4),
                     transforms.RandomHorizontalFlip(),
-                    transforms.ToPILImage(),
-                    transforms.ToTensor(),
                     transforms.Normalize(
                         self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
                     ),
@@ -62,19 +63,27 @@ class CIFAR10Dataset(Dataset):
         else:
             self.transform = transforms.Compose(
                 [
-                    transforms.ToPILImage(),
-                    transforms.ToTensor(),
-                    transforms.Normalize(
-                        self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
-                    ),
+                    # transforms.Normalize(
+                    #     self.data.mean(dim=(0, 2, 3)), self.data.std(dim=(0, 2, 3))
+                    # ),
                 ]
             )
 
     def __len__(self) -> int:
         return self.targets.numel()
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, Any]:
         data, target = self.data[idx].float(), self.targets[idx]
         if self.transform:
             data = self.transform(data)
         return data, target
+
+    def generate_sample(self) -> None:
+        image = self.data[1,:,:,:]
+        file_name = os.path.join(_PATH_DATA, "sample/sample.jpg")
+        save_image(image, file_name)
+
+
+if __name__ == "__main__":
+    handler = CIFAR10Dataset(False)
+    handler.generate_sample()
