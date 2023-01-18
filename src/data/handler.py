@@ -11,10 +11,11 @@ from src.data import _PATH_DATA
 
 class CIFAR10Dataset(Dataset):
     """
-    A class inheriting from the torch Dataset class. It is designed to fetch and 
+    A class inheriting from the torch Dataset class. It is designed to fetch and
     format the raw CIFAR10 dataset in the /data/cifar10 directory to a 4D torch Tensor.
     In addition, it also specifies transformations that is performed on the training data after formatting.
     """
+
     def __init__(
         self, train: bool, x_dim: int = 32, y_dim: int = 32, col_dim: int = 3
     ) -> None:

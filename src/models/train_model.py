@@ -10,6 +10,7 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
+import wandb
 from omegaconf import DictConfig
 from torch import nn, optim
 from torch.optim import lr_scheduler
@@ -21,11 +22,12 @@ from src.models.predict_model import validation
 
 log = logging.getLogger(__name__)
 
+
 @hydra.main(version_base=None, config_name="config.yaml", config_path="./")
 def train(cfg: DictConfig) -> None:
     """
     Calls the train_models function, with an attached hydra annotation.
-    
+
     Args:
         cfg: A DictConfig type parsed from .yaml config file via the hydra library.
 
@@ -45,9 +47,13 @@ def train_model(cfg: DictConfig) -> None:
         cfg: A DictConfig type parsed from .yaml config file via the hydra library.
 
     Returns:
-    
+
     """
     log.info(f"Running with config: {cfg}")
+    # intialize wandb logging to your project
+    wandb.init(project="testing cifar10")
+    # log all experimental args to wandb
+    # wandb.config.update(cfg.params)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Running on: {device}")
@@ -84,6 +90,8 @@ def train_model(cfg: DictConfig) -> None:
     loss_func = nn.CrossEntropyLoss()
     scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
+    wandb.watch(model, log_freq=1000)
+
     history, best_model = _initiate_training(
         model=model,
         optimizer=optimizer,
@@ -104,7 +112,7 @@ def train_model(cfg: DictConfig) -> None:
     torch.save(best_model.state_dict(), state_dict_path.resolve())
 
     # ploting results
-    plot_history(history)
+    # plot_history(history)
     torch.load(state_dict_path)
     test_loss, test_accuracy = validation(
         best_model, loss_func, test_dataloader, device
@@ -113,6 +121,8 @@ def train_model(cfg: DictConfig) -> None:
 
 
 # Training Function
+
+
 def _training_step(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
@@ -121,7 +131,7 @@ def _training_step(
     device: torch.device,
 ) -> Tuple[Any, Any]:
     """
-    Carries out a training step for a given model 
+    Carries out a training step for a given model
 
     Args:
         model: A torch deep learning model
@@ -150,7 +160,6 @@ def _training_step(
 
         loss.backward()
         optimizer.step()
-
         # loss and correct values compute
         train_loss += loss.item() * images.size(0)
         _, pred = torch.max(y_hat.data, 1)
@@ -162,6 +171,8 @@ def _training_step(
 
 
 # running the model
+
+
 def _initiate_training(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
@@ -202,6 +213,15 @@ def _initiate_training(
             model, optimizer, loss_func, train_loader, device
         )
         val_loss, val_acc = validation(model, loss_func, val_loader, device)
+        wandb.log(
+            {
+                "epoch": e,
+                "train_acc": train_acc,
+                "train_loss": train_loss,
+                "val_acc": val_acc,
+                "val_loss": val_loss,
+            }
+        )
 
         scheduler.step()
 
@@ -212,7 +232,8 @@ def _initiate_training(
             best_model = deepcopy(model)
             best_acc = val_acc
 
-        if (e + 1) % 2 == 0:
+        # if (e + 1) % 2 == 0:
+        if e >= 0:
             log.info(
                 f"> Epochs: {e+1}/{epochs} - Train Loss: {train_loss} - Train Acc: {train_acc} - Val Loss: {val_loss} - Val Acc: {val_acc}"
             )
@@ -230,20 +251,23 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
 
     # Ploting the Loss and Accuracy Curves
     _, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))
-
+    print("subplot setup")
     # Loss
     sns.lineplot(data=history["train_loss"], label="Training Loss", ax=ax[0])
     sns.lineplot(data=history["val_loss"], label="Validation Loss", ax=ax[0])
     ax[0].legend(loc="upper right")
     ax[0].set_title("Loss")
+
     # Accuracy
     sns.lineplot(data=history["train_acc"], label="Training Accuracy", ax=ax[1])
     sns.lineplot(data=history["val_acc"], label="Validation Accuracy", ax=ax[1])
     ax[1].legend(loc="lower right")
     ax[1].set_title("Accuracy")
+    plt.show()
 
     plot_filename = _PATH_VISUALIZATION / "model_training.png"
-    plt.savefig(plot_filename.resolve())  # CHANGE THIS PATH
+    print(plot_filename.resolve())
+    plt.savefig(plot_filename.resolve())
 
 
 if __name__ == "__main__":
