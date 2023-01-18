@@ -1,5 +1,6 @@
 import os
 import uvicorn
+import torch
 from io import BytesIO
 from fastapi import FastAPI, UploadFile, File
 from http import HTTPStatus
@@ -14,6 +15,7 @@ from src.models.predict_model import PredictModel
 
 app = FastAPI()
 log = logging.getLogger(__name__)
+
 
 @app.get("/")
 def root():
@@ -49,7 +51,7 @@ async def model_prediction(
    with Image.open(BytesIO(image_content)) as img:
       input_tensor = transform(img)
 
-   checkpoint_path = get_newest_checkpoint_path(model_name=model_name)
+   checkpoint_path = _get_newest_checkpoint_path(model_name=model_name)
    log.info("Found checkpoints for the specified model.")
    log.info("Initializing model...")
 
@@ -60,17 +62,21 @@ async def model_prediction(
    )
 
    log.info(f"Model created with parameters: {model.model.parameters()}")
-   input_tensor = input_tensor.reshape(-1, z_dim, x_dim, y_dim)
+   input_tensor = input_tensor[None, :, :, :]
    prediction = model.predict(input_tensor)
+   pred_idx = torch.argmax(prediction).item()
+   predicted_class = model.class_mapping[pred_idx]
+
+   log.info(f"Predicted the class: \'{predicted_class}\'")
    response = {
-      "input": prediction,
+      "prediction": predicted_class,
       "message": HTTPStatus.OK.phrase,
       "status-code": HTTPStatus.OK,
    }
    return response
 
 
-def get_newest_checkpoint_path(model_name: str) -> Path:
+def _get_newest_checkpoint_path(model_name: str) -> Path:
    """
    Fetches the newest checkpoint path for a given model. The function assumes that model checkpoints
    are stored in the format "{model name}-{year}-{month}-{day}-{hour}-{minute}-{second}".
@@ -108,6 +114,7 @@ def get_newest_checkpoint_path(model_name: str) -> Path:
    abs_path = _PATH_MODELS / checkpoints[index]
 
    return abs_path.resolve()
+
 
 if __name__ == "__main__":
    uvicorn.run(app, host="0.0.0.0", port=8000)
