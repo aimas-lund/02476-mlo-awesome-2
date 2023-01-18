@@ -34,7 +34,10 @@ jobs:
       run: dvc pull
       # env:
       #   GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
-
+    - name: Set wandb to offline model
+      run: |
+        wandb offline
+        
     - name: Test with pytest
       run: |
         coverage run -m pytest .
