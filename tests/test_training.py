@@ -1,4 +1,5 @@
 import pytest
+import wandb
 from hydra import compose, initialize
 from src.models import train_model
 
@@ -21,7 +22,6 @@ def test_resnet10_training():
     context.stop_test()
 
 
-@pytest.mark.xfail  # wandb has some unexpected behaviour which is not resolved easily
 def test_unsupported_model_training():
     ## An edge-case test where an unsupported model is specified to be trained.
     context = ModelTestContext("Ub3Rl33TM0d31")

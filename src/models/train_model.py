@@ -50,9 +50,9 @@ def train_model(cfg: DictConfig) -> None:
     """
     log.info(f"Running with config: {cfg}")
     #intialize wandb logging to your project
-    wandb.init(project= "testing cifar10")
+    wandb.init(project="testing cifar10")
     #log all experimental args to wandb
-    wandb.config.update(cfg.params)
+    # wandb.config.update(cfg.params)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Running on: {device}")
