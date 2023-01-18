@@ -16,13 +16,17 @@ from src.models.predict_model import validation
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
-
+import wandb
+# import yaml
 log = logging.getLogger(__name__)
-
 
 @hydra.main(config_name="config.yaml", config_path="./")
 def run(cfg):
     log.info(f"Running with config: {cfg}")
+    #intialize wandb logging to your project
+    wandb.init(project= "testing cifar10")
+    #log all experimental args to wandb
+    wandb.config.update(cfg.params)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Running on: {device}")
@@ -58,8 +62,8 @@ def run(cfg):
     optimizer = optim.Adam(model.parameters(), lr=cfg.params.learning_rate)
     loss_func = nn.CrossEntropyLoss()
     scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
-
-    history, best_model = train_model(
+    wandb.watch(model, log_freq=1000)
+    history, best_model = train_model(cfg,
         model=model,
         optimizer=optimizer,
         loss_func=loss_func,
@@ -79,16 +83,15 @@ def run(cfg):
     torch.save(best_model.state_dict(), state_dict_path.resolve())
 
     # ploting results
-    plot_history(history)
+    # plot_history(history)
     torch.load(state_dict_path)
     test_loss, test_accuracy = validation(
         best_model, loss_func, test_dataloader, device
     )
     log.info(f"test loss: {test_loss}, test accuracy: {test_accuracy}")
 
-
 # Training Function
-def train(
+def train(cfg,
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     loss_func: torch.nn.Module,
@@ -99,7 +102,7 @@ def train(
     train_correct = 0
     size_sampler = len(train_loader.sampler)
 
-    for images, labels in train_loader:
+    for batch_idx, (images, labels) in enumerate(train_loader):
 
         # Pushing to device (cuda or CPU)
         images, labels = images.to(device), labels.to(device)
@@ -112,7 +115,6 @@ def train(
 
         loss.backward()
         optimizer.step()
-
         # loss and correct values compute
         train_loss += loss.item() * images.size(0)
         _, pred = torch.max(y_hat.data, 1)
@@ -124,7 +126,7 @@ def train(
 
 
 # running the model
-def train_model(
+def train_model(cfg,
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
     loss_func: torch.nn.Module,
@@ -142,8 +144,15 @@ def train_model(
 
     for e in range(epochs):
 
-        train_loss, train_acc = train(model, optimizer, loss_func, train_loader, device)
+        train_loss, train_acc = train(cfg,model, optimizer, loss_func, train_loader, device)
         val_loss, val_acc = validation(model, loss_func, val_loader, device)
+        wandb.log({
+        'epoch': e, 
+        'train_acc': train_acc,
+        'train_loss': train_loss, 
+        'val_acc': val_acc, 
+        'val_loss': val_loss
+      })
 
         scheduler.step()
 
@@ -154,7 +163,8 @@ def train_model(
             best_model = deepcopy(model)
             best_acc = val_acc
 
-        if (e + 1) % 2 == 0:
+        # if (e + 1) % 2 == 0:
+        if e  >= 0:
             log.info(
                 f"> Epochs: {e+1}/{epochs} - Train Loss: {train_loss} - Train Acc: {train_acc} - Val Loss: {val_loss} - Val Acc: {val_acc}"
             )
@@ -172,20 +182,23 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
 
     # Ploting the Loss and Accuracy Curves
     _, ax = plt.subplots(nrows=1, ncols=2, figsize=(16, 6))
-
+    print("subplot setup")
     # Loss
     sns.lineplot(data=history["train_loss"], label="Training Loss", ax=ax[0])
     sns.lineplot(data=history["val_loss"], label="Validation Loss", ax=ax[0])
     ax[0].legend(loc="upper right")
     ax[0].set_title("Loss")
+ 
     # Accuracy
     sns.lineplot(data=history["train_acc"], label="Training Accuracy", ax=ax[1])
     sns.lineplot(data=history["val_acc"], label="Validation Accuracy", ax=ax[1])
     ax[1].legend(loc="lower right")
     ax[1].set_title("Accuracy")
+    plt.show()
 
     plot_filename = _PATH_VISUALIZATION / "model_training.png"
-    plt.savefig(plot_filename.resolve())  # CHANGE THIS PATH
+    print(plot_filename.resolve())
+    plt.savefig(plot_filename.resolve()) 
 
 
 if __name__ == "__main__":
