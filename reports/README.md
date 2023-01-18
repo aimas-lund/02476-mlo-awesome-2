@@ -110,9 +110,6 @@ end of the project.
 ### Question 2
 > **Enter the study number for each member in the group**
 >
-> Example:
->
-> *sxxxxxx,sxxxxxx, sxxxxxx
 >
 > Answer:
 
