@@ -2,13 +2,16 @@ import os
 
 import pytest
 import torch
-
 from src.data.handler import CIFAR10Dataset
+
 from tests import _PATH_DATA
 
 
-@pytest.mark.skipif(not os.path.exists(_PATH_DATA), reason="Data folder does not exist")
+@pytest.mark.skipif(
+    not os.path.exists(_PATH_DATA.resolve()), reason="Data folder does not exist"
+)
 def test_cifar10_data_dimensions():
+    ## Tests if the CIFAR10Dataset class fetches and formats data correctly.
     train_set = CIFAR10Dataset(train=True)
     test_set = CIFAR10Dataset(train=False)
 
