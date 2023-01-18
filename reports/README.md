@@ -103,20 +103,20 @@ end of the project.
 ### Question 1
 > **Enter the group number you signed up on <learn.inside.dtu.dk>**
 >
-> Answer:
+> Answer: 
 
---- question 1 fill here ---
+2
 
 ### Question 2
 > **Enter the study number for each member in the group**
 >
 > Example:
 >
-> *sXXXXXX, sXXXXXX, sXXXXXX*
+> *sxxxxxx,sxxxxxx, sxxxxxx
 >
 > Answer:
 
---- question 2 fill here ---
+*s174435,s184432, s210142, s213209, 
 
 ### Question 3
 > **What framework did you choose to work with and did it help you complete the project?**
@@ -129,7 +129,7 @@ end of the project.
 >
 > Answer:
 
---- question 3 fill here ---
+We used pytorch image models as the modelling framework for our project. We used the TIMM package. Of the several pretrained models available we decided to go with the resnet10t model [https://ieeexplore.ieee.org/document/9724001]. It is a lightweight model that uses less computing power compared to the other available pretrained models. It was trained on UC Merced Land Use Dataset [http://weegee.vision.ucmerced.edu/datasets/landuse.html]. Using a modelling framework and therefore a pretrained model helped us train faster as they come with an existing set of weights that can be initialized during training. That way the model does not have to train with randomly initialized weights. 
 
 ## Coding environment
 
@@ -148,7 +148,7 @@ end of the project.
 >
 > Answer:
 
---- question 4 fill here ---
+Dependencies were managed essentially through accessing a common github repository. A new member would first be granted access to the github repository. Once they cloned the github repo they would have to run the command "python pip install -r requirements.txt". The contents of the file mainly does two things. Firstly, it includes the command "python pip install -e ." that will instantiate the project as a module and therefore make the different cookiecutter folders accessible as modules. Secondly, it installs all the package requirements for the project. It is assumed that the new member has a compatible version of Python installed on their system. This step assumes that the installations would go through without creating any conflicts in the user's environment. Therefore, any conflicts that arise would have to be tackled locally. 
 
 ### Question 5
 
@@ -163,7 +163,7 @@ end of the project.
 > *experiments.*
 > Answer:
 
---- question 5 fill here ---
+The first folder that we have used from the cookiecutter template is data where the source data files from CIFAR10 have been saved. 
 
 ### Question 6
 
