@@ -30,7 +30,7 @@ class PredictModel():
         self,
         model_name: str,
         num_classes: int,
-        checkpoint_path: str,
+        checkpoint_path: str
     ) -> None:
         
         device = torch.device("cpu")
@@ -41,7 +41,20 @@ class PredictModel():
             pretrained=False,
             checkpoint_path=checkpoint_path,
             num_classes=num_classes,
-        ).to(device)
+        ).to(device).eval()
+
+        self.class_mapping = {
+            0: "airplane",
+            1: "automobile",
+            2: "bird",
+            3: "cat",
+            4: "deer",
+            5: "dog",
+            6: "frog",
+            7: "horse",
+            8: "ship",
+            9: "truck"
+        }
 
 
     def predict(self, img: torch.Tensor) -> int:
