@@ -10,11 +10,11 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
+import wandb
 from omegaconf import DictConfig
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
-import wandb
 
 from src.data.handler import CIFAR10Dataset
 from src.models import _PATH_MODELS, _PATH_VISUALIZATION
@@ -22,11 +22,12 @@ from src.models.predict_model import validation
 
 log = logging.getLogger(__name__)
 
+
 @hydra.main(version_base=None, config_name="config.yaml", config_path="./")
 def train(cfg: DictConfig) -> None:
     """
     Calls the train_models function, with an attached hydra annotation.
-    
+
     Args:
         cfg: A DictConfig type parsed from .yaml config file via the hydra library.
 
@@ -46,12 +47,12 @@ def train_model(cfg: DictConfig) -> None:
         cfg: A DictConfig type parsed from .yaml config file via the hydra library.
 
     Returns:
-    
+
     """
     log.info(f"Running with config: {cfg}")
-    #intialize wandb logging to your project
+    # intialize wandb logging to your project
     wandb.init(project="testing cifar10")
-    #log all experimental args to wandb
+    # log all experimental args to wandb
     # wandb.config.update(cfg.params)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -118,7 +119,9 @@ def train_model(cfg: DictConfig) -> None:
     )
     log.info(f"test loss: {test_loss}, test accuracy: {test_accuracy}")
 
+
 # Training Function
+
 
 def _training_step(
     model: torch.nn.Module,
@@ -128,7 +131,7 @@ def _training_step(
     device: torch.device,
 ) -> Tuple[Any, Any]:
     """
-    Carries out a training step for a given model 
+    Carries out a training step for a given model
 
     Args:
         model: A torch deep learning model
@@ -169,6 +172,7 @@ def _training_step(
 
 # running the model
 
+
 def _initiate_training(
     model: torch.nn.Module,
     optimizer: torch.optim.Optimizer,
@@ -205,18 +209,19 @@ def _initiate_training(
 
     for e in range(epochs):
 
-
         train_loss, train_acc = _training_step(
             model, optimizer, loss_func, train_loader, device
         )
         val_loss, val_acc = validation(model, loss_func, val_loader, device)
-        wandb.log({
-        'epoch': e, 
-        'train_acc': train_acc,
-        'train_loss': train_loss, 
-        'val_acc': val_acc, 
-        'val_loss': val_loss
-      })
+        wandb.log(
+            {
+                "epoch": e,
+                "train_acc": train_acc,
+                "train_loss": train_loss,
+                "val_acc": val_acc,
+                "val_loss": val_loss,
+            }
+        )
 
         scheduler.step()
 
@@ -228,7 +233,7 @@ def _initiate_training(
             best_acc = val_acc
 
         # if (e + 1) % 2 == 0:
-        if e  >= 0:
+        if e >= 0:
             log.info(
                 f"> Epochs: {e+1}/{epochs} - Train Loss: {train_loss} - Train Acc: {train_acc} - Val Loss: {val_loss} - Val Acc: {val_acc}"
             )
@@ -252,7 +257,7 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
     sns.lineplot(data=history["val_loss"], label="Validation Loss", ax=ax[0])
     ax[0].legend(loc="upper right")
     ax[0].set_title("Loss")
- 
+
     # Accuracy
     sns.lineplot(data=history["train_acc"], label="Training Accuracy", ax=ax[1])
     sns.lineplot(data=history["val_acc"], label="Validation Accuracy", ax=ax[1])
@@ -262,9 +267,8 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
 
     plot_filename = _PATH_VISUALIZATION / "model_training.png"
     print(plot_filename.resolve())
-    plt.savefig(plot_filename.resolve()) 
+    plt.savefig(plot_filename.resolve())
 
 
 if __name__ == "__main__":
     train()
-
