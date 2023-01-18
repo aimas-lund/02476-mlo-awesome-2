@@ -144,7 +144,7 @@ def _training_step(
     train_correct = 0
     size_sampler = len(train_loader.sampler)
 
-    for batch_idx, (images, labels) in enumerate(train_loader):
+    for images, labels in train_loader:
 
         # Pushing to device (cuda or CPU)
         images, labels = images.to(device), labels.to(device)
