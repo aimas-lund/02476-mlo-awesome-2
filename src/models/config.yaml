@@ -6,3 +6,4 @@ params:
   model: resnet10t
   num_classes: 10
   optimizer: optim.SGD(model.parameters())
+  save_to_cloud: True

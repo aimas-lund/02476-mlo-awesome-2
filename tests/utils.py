@@ -40,6 +40,7 @@ class ModelTestContext:
                 "num_classes": 10,
                 "learning_rate": 1e-3,
                 "batch_size": 32,
+                "save_to_cloud": False
             }
         }
 
