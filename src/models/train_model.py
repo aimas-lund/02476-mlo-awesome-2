@@ -53,7 +53,7 @@ def train_model(cfg: DictConfig) -> None:
     # intialize wandb logging to your project
     wandb.init(project="testing cifar10")
     # log all experimental args to wandb
-    wandb.config.update(cfg.params)
+    # wandb.config.update(cfg.params)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     log.info(f"Running on: {device}")
@@ -120,7 +120,7 @@ def train_model(cfg: DictConfig) -> None:
     # plot_history(history)
     torch.load(state_dict_path)
     test_loss, test_accuracy = validation(
-        best_model, loss_func, test_dataloader, device,test_flag=1
+        best_model, loss_func, test_dataloader, device
     )
     log.info(f"test loss: {test_loss}, test accuracy: {test_accuracy}")
 
@@ -217,7 +217,7 @@ def _initiate_training(
         train_loss, train_acc = _training_step(
             model, optimizer, loss_func, train_loader, device
         )
-        val_loss, val_acc = validation(model, loss_func, val_loader, device,test_flag=0)
+        val_loss, val_acc = validation(model, loss_func, val_loader, device)
         wandb.log(
             {
                 "epoch": e,
