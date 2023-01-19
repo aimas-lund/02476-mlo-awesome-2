@@ -3,9 +3,28 @@ import numpy as np
 import timm
 import torch
 from src.models import _PATH_MODELS
+import wandb
+from PIL import Image as im
 
+class_mapping = {
+    0: "airplane",
+    1: "automobile",
+    2: "bird",
+    3: "cat",
+    4: "deer",
+    5: "dog",
+    6: "frog",
+    7: "horse",
+    8: "ship",
+    9: "truck"
+}
 
-def validation(model, loss_func, dataloader, device):
+def validation(
+        model, 
+        loss_func, 
+        dataloader, 
+        device
+    ):
     val_loss = 0.0
     val_correct = 0
     size_sampler = len(dataloader.sampler)
@@ -20,9 +39,24 @@ def validation(model, loss_func, dataloader, device):
             _, pred = torch.max(y_hat.data, 1)
             val_correct += (pred == labels.long().squeeze()).sum().item()
 
+            _wandb_log_table(images, labels, pred)
+
     return np.round(val_loss / size_sampler, 4), np.round(
         val_correct * 100.0 / size_sampler, 3
     )
+
+def _wandb_log_table(images, labels, prediction) -> None:
+    table_rows = []
+
+    for idx in range(len(images)):
+        img2 = images[idx].reshape(32,32,3).numpy().astype(np.uint8)
+        img2 = im.fromarray(img2, mode="RGB")
+
+        table_row = [wandb.Image(img2),class_mapping[prediction.numpy()[idx]],class_mapping[labels.long().squeeze().numpy()[idx]]]
+        table_rows.append(table_row)
+
+    pred_table = wandb.Table(data=table_rows, columns=["images","pred","actual"])
+    wandb.log({"table": pred_table})
 
 
 class PredictModel:
