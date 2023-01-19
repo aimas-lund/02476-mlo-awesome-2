@@ -40,7 +40,7 @@ def validation(
             _, pred = torch.max(y_hat.data, 1)
             val_correct += (pred == labels.long().squeeze()).sum().item()
 
-            _wandb_log_table(images, labels, pred)
+            # _wandb_log_table(images, labels, pred)
 
     return np.round(val_loss / size_sampler, 4), np.round(
         val_correct * 100.0 / size_sampler, 3
@@ -50,10 +50,10 @@ def _wandb_log_table(images, labels, prediction) -> None:
     table_rows = []
 
     for idx in range(len(images)):
-        img2 = images[idx].reshape(32,32,3).numpy().astype(np.uint8)
+        img2 = images[idx].reshape(32,32,3).cpu().numpy().astype(np.uint8)
         img2 = im.fromarray(img2, mode="RGB")
 
-        table_row = [wandb.Image(img2),class_mapping[prediction.numpy()[idx]],class_mapping[labels.long().squeeze().numpy()[idx]]]
+        table_row = [wandb.Image(img2),class_mapping[prediction.cpu().numpy()[idx]],class_mapping[labels.long().squeeze().cpu().numpy()[idx]]]
         table_rows.append(table_row)
 
     pred_table = wandb.Table(data=table_rows, columns=["images","pred","actual"])
