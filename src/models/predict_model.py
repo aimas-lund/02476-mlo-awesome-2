@@ -1,8 +1,9 @@
 # from make_dataset3 import cifar10
 import numpy as np
-import torch
 import timm
+import torch
 from src.models import _PATH_MODELS
+
 
 def validation(model, loss_func, dataloader, device):
     val_loss = 0.0
@@ -24,24 +25,22 @@ def validation(model, loss_func, dataloader, device):
     )
 
 
-class PredictModel():
-    
-    def __init__(
-        self,
-        model_name: str,
-        num_classes: int,
-        checkpoint_path: str
-    ) -> None:
-        
+class PredictModel:
+    def __init__(self, model_name: str, num_classes: int, checkpoint_path: str) -> None:
+
         device = torch.device("cpu")
         self.model_name = model_name
         self.checkpoint_path = checkpoint_path
-        self.model = timm.create_model(
-            model_name=model_name,
-            pretrained=False,
-            checkpoint_path=checkpoint_path,
-            num_classes=num_classes,
-        ).to(device).eval()
+        self.model = (
+            timm.create_model(
+                model_name=model_name,
+                pretrained=False,
+                checkpoint_path=checkpoint_path,
+                num_classes=num_classes,
+            )
+            .to(device)
+            .eval()
+        )
 
         self.class_mapping = {
             0: "airplane",
@@ -53,9 +52,8 @@ class PredictModel():
             6: "frog",
             7: "horse",
             8: "ship",
-            9: "truck"
+            9: "truck",
         }
-
 
     def predict(self, img: torch.Tensor) -> int:
         predictions = self.model(img)

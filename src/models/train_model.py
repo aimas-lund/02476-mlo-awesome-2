@@ -11,14 +11,14 @@ import timm
 import timm.optim
 import torch
 import wandb
+from google.cloud import storage
 from omegaconf import DictConfig
-from torch import nn, optim
-from torch.optim import lr_scheduler
-from torch.utils.data import DataLoader, random_split
-
 from src.data.handler import CIFAR10Dataset
 from src.models import _PATH_MODELS, _PATH_VISUALIZATION
 from src.models.predict_model import validation
+from torch import nn, optim
+from torch.optim import lr_scheduler
+from torch.utils.data import DataLoader, random_split
 
 log = logging.getLogger(__name__)
 
@@ -110,6 +110,11 @@ def train_model(cfg: DictConfig) -> None:
     state_dict_path = _PATH_MODELS / state_dict_filename
     log.info(f'Saving state dict as "{state_dict_filename}" ')
     torch.save(best_model.state_dict(), state_dict_path.resolve())
+
+    if cfg.params.save_to_cloud:
+        bucket_name = "mlops-checkpoints"
+
+        save_to_bucket(str(state_dict_path), bucket_name, state_dict_filename)
 
     # ploting results
     # plot_history(history)
@@ -268,6 +273,13 @@ def plot_history(history: Dict[str, List[Any]]) -> None:
     plot_filename = _PATH_VISUALIZATION / "model_training.png"
     print(plot_filename.resolve())
     plt.savefig(plot_filename.resolve())
+
+
+def save_to_bucket(file_path: str, bucket_name: str, file_name: str) -> None:
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(file_name)
+    blob.upload_from_filename(file_path)
 
 
 if __name__ == "__main__":
