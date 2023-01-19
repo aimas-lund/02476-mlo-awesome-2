@@ -1,13 +1,13 @@
+import os
 import pickle
 from pathlib import Path
+from typing import Any, Tuple
 
 import numpy as np
-import os
 import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.utils import save_image
-from typing import Tuple, Any
 
 from src.data import _PATH_DATA
 
@@ -79,7 +79,7 @@ class CIFAR10Dataset(Dataset):
         return data, target
 
     def generate_sample(self) -> None:
-        image = self.data[1,:,:,:]
+        image = self.data[1, :, :, :]
         file_name = os.path.join(_PATH_DATA, "sample/sample.jpg")
         save_image(image, file_name)
 

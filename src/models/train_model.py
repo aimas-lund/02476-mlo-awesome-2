@@ -10,15 +10,16 @@ import seaborn as sns
 import timm
 import timm.optim
 import torch
-import wandb
 from google.cloud import storage
 from omegaconf import DictConfig
-from src.data.handler import CIFAR10Dataset
-from src.models import _PATH_MODELS, _PATH_VISUALIZATION
-from src.models.predict_model import validation
 from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, random_split
+
+import wandb
+from src.data.handler import CIFAR10Dataset
+from src.models import _PATH_MODELS, _PATH_VISUALIZATION
+from src.models.predict_model import validation
 
 log = logging.getLogger(__name__)
 

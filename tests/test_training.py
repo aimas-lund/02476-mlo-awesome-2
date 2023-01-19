@@ -1,8 +1,8 @@
 import pytest
-import wandb
 from hydra import compose, initialize
-from src.models import train_model
 
+import wandb
+from src.models import train_model
 from tests import _PATH_MODELS
 from tests.utils import ModelTestContext
 
