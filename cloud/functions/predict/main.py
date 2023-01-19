@@ -132,17 +132,16 @@ def _get_newest_checkpoint_path(
     dates = []
     for ch in checkpoints:
         # remove model name and file extension from filename
-        datetime_split = (
-            ch.replace(f"{checkpoints}-", "").replace(".pth", "").split("-")
-        )
+        datetime_string = ch.replace(".pth", "")
+        datetime_split = datetime_string.split("-")
         dates.append(
             datetime(
-                year=int(datetime_split[0]),
-                month=int(datetime_split[1]),
-                day=int(datetime_split[2]),
-                hour=int(datetime_split[3]),
-                minute=int(datetime_split[4]),
-                second=int(datetime_split[5]),
+                year=int(datetime_split[1]),
+                month=int(datetime_split[2]),
+                day=int(datetime_split[3]),
+                hour=int(datetime_split[4]),
+                minute=int(datetime_split[5]),
+                second=int(datetime_split[6]),
             )
         )
 
