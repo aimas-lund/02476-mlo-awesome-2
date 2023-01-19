@@ -14,7 +14,13 @@ log = logging.getLogger(__name__)
 
 
 class PredictModel:
-    def __init__(self, model_name: str, num_classes: int, checkpoint_path: str, pretrained: bool = False) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        num_classes: int,
+        checkpoint_path: str,
+        pretrained: bool = False,
+    ) -> None:
 
         d = torch.device("cpu")
         self.model_name = model_name
@@ -136,8 +142,8 @@ def generate_model(model_name: str, test: bool = False) -> PredictModel:
     # get newest model checkpoint from Google Cloud Bucket
     if test:
         model = PredictModel(
-        model_name=model_name, num_classes=10, checkpoint_path=None, pretrained=True
-    ) 
+            model_name=model_name, num_classes=10, checkpoint_path=None, pretrained=True
+        )
     else:
         client = storage.Client()
         bucket_name = "mlops-checkpoints"

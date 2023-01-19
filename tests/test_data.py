@@ -2,8 +2,8 @@ import os
 
 import pytest
 import torch
-from src.data.handler import CIFAR10Dataset
 
+from src.data.handler import CIFAR10Dataset
 from tests import _PATH_DATA
 
 
