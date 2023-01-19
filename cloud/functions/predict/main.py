@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 class PredictModel:
-    def __init__(self, model_name: str, num_classes: int, checkpoint_path: str) -> None:
+    def __init__(self, model_name: str, num_classes: int, checkpoint_path: str, pretrained: bool = False) -> None:
 
         d = torch.device("cpu")
         self.model_name = model_name
@@ -22,7 +22,7 @@ class PredictModel:
             create_model(
                 model_name=model_name,
                 num_classes=num_classes,
-                pretrained=False,
+                pretrained=pretrained,
                 checkpoint_path=checkpoint_path,
             )
             .to(d)
@@ -70,34 +70,13 @@ def mlops_predict(request):
     log.info("Found checkpoints for the specified model.")
     log.info("Initializing model...")
 
-    # get newest model checkpoint from Google Cloud Bucket
-    client = storage.Client()
-    bucket_name = "mlops-checkpoints"
-    bucket = client.get_bucket(bucket_name)
-    files = bucket.list_blobs()
+    predict_model = generate_model(model_name)
 
-    checkpoints = [file.name for file in files]
-
-    file_name = _get_newest_checkpoint_path(checkpoints, model_name=model_name)
-
-    # create a tmp folder, which is writable in Google Cloud Function env.
-    os.makedirs("/tmp", exist_ok=True)
-
-    checkpoint_path = f"/tmp/{file_name}"
-
-    blob = bucket.blob(file_name)
-    blob.download_to_filename(checkpoint_path)
-
-    # classify the provided image
-    model = PredictModel(
-        model_name=model_name, num_classes=10, checkpoint_path=checkpoint_path
-    )
-
-    log.info(f"Model created with parameters: {model.model.parameters()}")
+    log.info(f"Model created with parameters: {predict_model.model.parameters()}")
     input_tensor = input_tensor[None, :, :, :]
-    prediction = model.predict(input_tensor)
+    prediction = predict_model.predict(input_tensor)
     pred_idx = torch.argmax(prediction).item()
-    predicted_class = model.class_mapping[pred_idx]
+    predicted_class = predict_model.class_mapping[pred_idx]
 
     log.info(f"Predicted the class: '{predicted_class}'")
 
@@ -151,3 +130,35 @@ def _get_newest_checkpoint_path(
     newest_checkpoint = checkpoints[index]
 
     return newest_checkpoint
+
+
+def generate_model(model_name: str, test: bool = False) -> PredictModel:
+    # get newest model checkpoint from Google Cloud Bucket
+    if test:
+        model = PredictModel(
+        model_name=model_name, num_classes=10, checkpoint_path=None, pretrained=True
+    ) 
+    else:
+        client = storage.Client()
+        bucket_name = "mlops-checkpoints"
+        bucket = client.get_bucket(bucket_name)
+        files = bucket.list_blobs()
+
+        checkpoints = [file.name for file in files]
+
+        file_name = _get_newest_checkpoint_path(checkpoints, model_name=model_name)
+
+        # create a tmp folder, which is writable in Google Cloud Function env.
+        os.makedirs("/tmp", exist_ok=True)
+
+        checkpoint_path = f"/tmp/{file_name}"
+
+        blob = bucket.blob(file_name)
+        blob.download_to_filename(checkpoint_path)
+
+        # classify the provided image
+        model = PredictModel(
+            model_name=model_name, num_classes=10, checkpoint_path=checkpoint_path
+        )
+
+    return model
