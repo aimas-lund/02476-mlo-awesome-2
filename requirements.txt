@@ -22,4 +22,4 @@ seaborn
 fastapi
 uvicorn[standard]
 python-multipart
-google-cloud
+google-cloud-storage
