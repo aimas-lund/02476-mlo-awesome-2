@@ -1,0 +1,12 @@
+# curl HTTP POST request to cloud prediction endpoint
+
+# UNIX
+curl -X 'POST' \
+  'https://europe-west1-adept-lead-374308.cloudfunctions.net/mlops_predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'image=@/{DIRECTORIES}/02476-mlo-awesome-2/cloud/samples/ship.png;type=image/png'
+
+# WINDOWS
+# GOTO directory containing the file
+curl -X POST https://europe-west1-adept-lead-374308.cloudfunctions.net/mlops_predict -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "image=@ship.png;type=image/png"

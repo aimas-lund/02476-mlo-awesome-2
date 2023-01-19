@@ -1,23 +1,18 @@
 import pytest
-import torch
 
-from tests import _PATH_MODELS
-
-
-@pytest.mark.xfail
-def test_input_output_dims():
-    ## Test the expected in- and output dimensions of the model
-    model = None  # TODO: replace with model implementation
-    expected_output_dim = 10
-    expected_input_dim = torch.empty(1, 32, 32, 3).size()
+from cloud.functions.predict.main import _get_newest_checkpoint_path, generate_model, mlops_predict
 
 
-    assert False
+def test_model():
+    model = generate_model("resnet10t", test=True)
+
+    assert model != None
 
 
-@pytest.mark.xfail
-def test_model_input_error():
-    ## Test a an input with an invalid dimension
-    model = None  # TODO: replace with model implementation
-    with pytest.raises(ValueError, match="Expected 4D input tensor"):
-        model(torch.randn(1, 2, 3))
+def test_get_newest_checkpoint_path():
+    checkpoints = ["resnet10t-2023-01-18-22-18-01.pth", "resnet10t-2023-01-19-22-18-01.pth", "resnet10t-2023-02-18-22-18-01.pth"]
+
+    newest_checkpoint = _get_newest_checkpoint_path(checkpoints)
+
+    assert newest_checkpoint == checkpoints[2], "Newest checkpoint was not found."
+    
