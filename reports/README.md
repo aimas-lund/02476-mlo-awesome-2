@@ -127,14 +127,13 @@ s174435, s184432, s210142, s213209,
 > Answer:
 
 
-We used pytorch image models as the modelling framework for our project. We used the TIMM package. Of the several pretrained models available we decided to go with the resnet10t model [https://ieeexplore.ieee.org/document/9724001]. It is a lightweight model that uses less computing power compared to the other available pretrained models. It was trained on UC Merced Land Use Dataset [http://weegee.vision.ucmerced.edu/datasets/landuse.html]. Using a modelling framework and therefore a pretrained model helped us train faster as they come with an existing set of weights that can be initialized during training. That way the model does not have to train with randomly initialized weights. 
+We used pytorch image models as the modelling framework for our project. We used the TIMM package. Of the several pretrained models available we decided to go with the resnet10t model [https://ieeexplore.ieee.org/document/9724001]. It is a lightweight model that uses less computing power compared to the other available pretrained models. It was trained on UC Merced Land Use Dataset [http://weegee.vision.ucmerced.edu/datasets/landuse.html]. Using a modelling framework and therefore a pretrained model helped us train faster as they come with an existing set of weights that can be initialized during training. That way the model does not have to train with randomly initialized weights.
 
 ## Coding environment
 
 > In the following section we are interested in learning more about you local development environment.
 
 ### Question 4
-
 > **Explain how you managed dependencies in your project? Explain the process a new team member would have to go**
 > **through to get an exact copy of your environment.**
 >
@@ -146,8 +145,7 @@ We used pytorch image models as the modelling framework for our project. We used
 >
 > Answer:
 
-
-Dependencies were managed essentially through accessing a common github repository. A new member would first be granted access to the github repository. Once they cloned the github repo they would have to run the command "python pip install -r requirements.txt". The contents of the file mainly does two things. Firstly, it includes the command "python pip install -e ." that will instantiate the project as a module and therefore make the different cookiecutter folders accessible as modules. Secondly, it installs all the package requirements for the project. It is assumed that the new member has a compatible version of Python installed on their system. This step assumes that the installations would go through without creating any conflicts in the user's environment. Therefore, any conflicts that arise would have to be tackled locally. 
+We used pip and a requirements.txt file to manage dependencies in our project. The list of dependencies was auto-generated using pip freeze and was included in the repository. To get a complete copy of our development environment, a new team member would have to first clone the repository, then navigate to the project directory and run the command "pip install -r requirements.txt" in their terminal. This command will install all the necessary dependencies listed in the requirements.txt file. Additionally, we are using FastAPI as web framework for our local model deployment instance. 
 
 
 ### Question 5
@@ -163,9 +161,25 @@ Dependencies were managed essentially through accessing a common github reposito
 > *experiments.*
 > Answer:
 
+The following folders were utilised from the cookiecutter template:
+* Data: This folder was used to store the CIFAR10 dataset. The data is hosted in the project’s GCP bucket “mlops-bucket-team-2”. A DVC pull fetches the data and puts it in the data folder. 
+* Models: The best model thus obtained during training is saved into this folder. 
+* src: Most important folder that stores all the scripts. Of which:
+      * Data: Contains the code file handler.py that creates the training and test dataloaders from the source files. 
+      * Models: Contains the code file train_model.py , predict_model.py as well as the config.yaml file which contains the models hyperparameters.
+      * Visualizations: Used to save matplotlib graphs, before wandb was integrated into the source code.
 
-The first folder that we have used from the cookiecutter template is data where the source data files from CIFAR10 have been saved. 
+Setup files that were used from the template are:
+* Requirements.txt: Contains all the packages that need to be installed when a new member is setting up.
+A few additional folders were created as below:
+* Cloud: Contains the cloud function that will take an incoming image coming from a POST request and produce a prediction after passing it through the model. It also contains a folder for sample images where the image to be predicted can be placed. We decided to do this to have clear separation between code associated with training and code associated with cloud deployment.
+* Outputs: Contains day and time stamp wise nested folders for every run. The logs from hydra and wandb were stored in these folders.
 
+Files that were additionally created and added to the template are:
+* .pre-commit-config.yaml : Pre-commit checks that are applied on an incoming commit to the github repository.
+* Cloudbuild.yaml: Instructions to build the image container on GCP
+* Trainer.dockerfile: Instructions to build the Docker image
+* Requirements_test.txt: Containing python packages solely used for unit tests.
 
 ### Question 6
 
@@ -176,7 +190,11 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 6 fill here ---
+For this, we used docstrings to document what the input and the outputs are for every function. Keywords such as “Args” and “returns” were used to indicate the inputs that the function expected and the outputs that the function gave respectively. 
+Secondly, typing was used to rule out any ambiguity about the input data type to some of the functions. For instance, the class instantiated for the input dataset CIFAR10 indicated the datatype of the input data dimensions as well as the type of input to pass (Bool) when the CIFAR10Dataset (module to load the data) is called. Further, the train function receives the configuration from the yaml file which in turn has been declared as a dictionary. Such measures make the code more transferable and unambiguous. Especially in larger projects where the the development team could be huge and change through the course of the project, manual code handover may not be viable and using such coding standards makes the code easier to read to some extent.
+Also we added a pre-commit file that checks compliance of the code before it is committed to the repository. We included a flake8 hook as well that would check for syntax errors, coding style violations, undefined or unused variables, etc.
+Version control
+In the following section we are interested in how version control was used in your project during development to corporate and increase the quality of your code.
 
 ## Version control
 
@@ -195,7 +213,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 7 fill here ---
+We have implemented a total of 5 unit tests. 1 unit test is for dataset fetching and formatting, ensuring that the data is handled correctly, before being used for training. For training, we have implemented 2 unit tests that check that a model can be trained without errors. These unit tests are a bit general, and future development should focus on developing unit tests for smaller segments of the training process. Lastly, there are 2 unit tests for the Google Cloud Function deployment implementation. These are especially important, as deploying to the cloud is a cumbersome task that would require a lot of time to handle, if errors would persist during deployment.
 
 ### Question 8
 
@@ -210,7 +228,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 8 fill here ---
+The total code coverage of the code is 82%, which includes all our source code. The code coverage for individual files varies, with some files having a high coverage of over 90% and others having a lower coverage of 74% or 88%. For example, the ‘src/models/predict_model.py’ has a code coverage of 74% while ‘src/models/train_model.py’ has 80% and ‘src/data/handler.py’ has 88%. Even if we were to achieve 100% code coverage, it would not necessarily mean that the code is error-free. Code coverage simply measures the percentage of lines of code that have been executed during testing and does not guarantee that all possible inputs and edge cases have been thoroughly tested. Therefore, additional techniques such as manual testing and code reviews are also necessary to ensure code quality. 
 
 ### Question 9
 
@@ -225,7 +243,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 9 fill here ---
+Our team utilized a robust version control workflow with Git on GitHub utilizing branches and pull requests to collaborate effectively on our codebase. The main branch was meticulously maintained as the most recent, fully functional version of the code. To ensure the integrity of the main branch, direct commit pushes were prohibited. Each team member worked independently on their designated branches during the development process. Once the code was thoroughly tested and deemed ready for integration, it was committed and pushed to the branch repository. A pull request was then initiated, triggering a review process and request for merge into the main repository. Any conflicts that arose during the merge were promptly resolved, and the final commit required approval from at least one other team member using GitHub's built-in review system. This workflow allowed us to maintain a high level of code quality and ensure that only stable and tested code was merged into the main branch.
 
 ### Question 10
 
@@ -240,7 +258,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 10 fill here ---
+We used DVC to host the data for our project on the Google Cloud Platform, specifically in a bucket. Since our dataset CIFAR10 is a static dataset, we didn’t leverage the versioning functionality of DVC as we refrained from using any image augmentation. DVC could have come in handy if we tried different data augmentations, permutated with various model architectures and compared performance. Also, in case of the project where the data underwent multiple versions (such as a high velocity data environment where the model is trained, for instance, or different snapshots) having DVC would be useful in keeping a track of the combinations of data version and the model(s) that was trained on it.
 
 ### Question 11
 
@@ -256,7 +274,14 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 11 fill here ---
+Our continuous integration setup is built around GitHub Actions. We have organized our CI pipeline into a single workflow file, which handles unit testing and coverage reporting.
+For unit testing, we use the popular Pytest library, which allows us to easily write and run tests for our code. The line coverage of the unit tests are reported afterwards, using the coverage package, to give an overview of the test coverage.
+We also make use of a pre-commit file, which allows us to run linting and other code quality checks before committing any changes. This helps us catch any issues early on and maintain a high level of code quality.
+In addition to testing on a single operating system and Python version, we also test our code on multiple operating systems and Python versions to ensure compatibility and catch any platform-specific issues.
+An example of one of our GitHub Actions workflow files can be found at https://github.com/aimas-lund/02476-mlo-awesome-2/actions/runs/3957234691/jobs/6777348964. 
+We have also implemented a trigger on GCP which is following the main branch of our repository and deploys the model automatically as soon as we push code into the main branch. 
+Overall, our CI pipeline is designed to provide comprehensive testing, code quality checks, and compatibility testing, helping us catch issues early on, and maintain an elevated level of code quality, saving time in the long run.
+
 
 ## Running code and tracking experiments
 
@@ -275,7 +300,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 12 fill here ---
+We used the Hydra library to configure experiments by creating a config.yaml file where we specified all the hyperparameters. We would run the experiments by using the command "python train_model.py" which would read the config file and use the specified hyperparameters. Other group members could run the command "python train_model.py params.batch_size=64 params.epochs=30" to override the specific hyperparameters in the config file and run the experiment with their desired values. This allowed us to easily manage and track all the different experiments we ran and allowed other members to easily reproduce our experiments.
 
 ### Question 13
 
@@ -290,7 +315,10 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 13 fill here ---
+To ensure that no information is lost when running experiments and that our experiments are reproducible, we made use of config files as well as version control. Every time an experiment is run, the config file and the code used for the experiment are committed to version control. This allows us to easily roll back to previous versions of the code and config files if necessary. Additionally, we also keep track of the experiment results, including the training logs, model weights and evaluation metrics in a centralized location.
+To reproduce an experiment, one would have to check out the specific version of the code and config file used for that experiment and run the experiment using the same environment and dependencies. We also added version tracking of our dependencies, so that we can reproduce the experiment with the same environment and dependencies as it was run earlier.
+Overall, our approach to configuring and running experiments helped us to maintain reproducibility and traceability of our experiments.
+
 
 ### Question 14
 
@@ -307,7 +335,12 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
+In the first image we can see the training and validation accuracies plotted across the epochs, which was one of the hyperparameters during training. The figure captures only the first 10 finished runs. The equivalent plot for training and validation losses is shown on the right. The model accuracies improved as more epochs were trained. Also, the training accuracies were higher than the validation accuracies.  More number of epochs means more training time and therefore requires more resources. We were therefore keen to see the number of epochs at which the model accuracies plateaued. 
+
 ![wandb-training-loss](./figures/wandb-training-loss.png)
+
+The actual and predicted labels of the classes were logged into a table and the model’s class wise performance can be seen in the image below. The airplane class has a good prediction rate; it is however interesting that the next based guess of the model is a ship for airplane pictures. On the other hand, the model mistaking an automobile for a truck is understandable.
+
 ![wandb-tables](./figures/wandb-table.png)
 
 --- question 14 fill here ---
@@ -325,7 +358,10 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 15 fill here ---
+In our project, we used Docker to create containerized applications. We developed two Dockerfiles, one for training and another one for testing. The goal was to containerize the Docker image generated from the Dockerfile, then deploy it on a VM instance on Cloud Compute in GCP, which was intended to be used for training our model with Vertex AI. Unfortunately, we failed in this due to some deployment errors on the cloud and the lack of experience and time shortage. We attempted two approaches to use Docker: a manual one and another one through a trigger.
+
+The manual approach involved the use of Docker commands, such as "docker build -f trainer.dockerfile . -t trainer:latest", "docker tag tester gcr.io/adept-lead-374308/aimaslund", and "docker push gcr.io/adept-lead-374308/aimaslund". This would create the instance in the container registry, but upon deployment, we encountered cloud errors.
+The second approach was through a trigger that would follow the main branch of the project and build the project based on the Dockerfile. However, this approach also failed when we tried to deploy the container on the VM instance. 
 
 ### Question 16
 
@@ -340,7 +376,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 16 fill here ---
+When running into bugs while trying to run experiments, we used a variety of debugging methods. Some team members used the built-in debugger from VS Code, which allowed them to step through the code line by line and inspect variables at different points in the execution. Additionally, we also used the logging module to log the variable values and the flow of execution, allowing us to track historical occurrences on deployed code, where using a debugger is not feasible. We did not perform any profiling of our code, as we evaluated the flow to be running with a decent time performance. Although we do not think that our code is perfect and there may be areas for improvement, we decided to prioritize our resources elsewhere.
 
 ## Working in the cloud
 
@@ -357,7 +393,12 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 17 fill here ---
+In this project, we made use of several GCP services.
+* Bucket: We used GCP bucket to store and retrieve data. It is an object storage service that enables us to store and retrieve large amounts of data with high durability and availability.
+* Compute Engine: We created several VM instances to run our experiments. Compute Engine is a service that allows us to create and run virtual machines on GCP.
+* Cloud Functions: We created triggers to automatically run some code when an event occurs. Cloud Functions is a service that allows us to run small, single-purpose code snippets, called functions, in response to events such as changes to data in a bucket or a new message in a Pub/Sub topic.
+* Vertex AI: We attempted to train a model using Vertex AI. Vertex AI is a fully managed platform for building, deploying, and managing machine learning models at scale.
+Please note that the services that were attempted but not successful, in your case, deploy Docker containers on a VM and training with Vertex AI, they just couldn't work in other cases, but it could have been due to lack of knowledge or some specific requirements that couldn't be met. 
 
 ### Question 18
 
@@ -372,7 +413,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 18 fill here ---
+We utilized the Compute Engine service in Google Cloud Platform (GCP) for our project. We created multiple virtual machine (VM) instances, some for testing and others from the pytorch-latest-gpu image family with the option --image-project=deeplearning-platform-release. Our goal was to link a Docker container to these instances and run the VM, but we encountered errors while deploying the container on the cloud. The VM instances were located in Europe and had a machine type of e2-medium. Our main reason for using a VM instance on GCP was to utilize the Vertex AI service to train our model.
 
 ### Question 19
 
@@ -381,7 +422,10 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
+We have actively used two buckets for data storage. “mlops-bucket-team-2” is used to store the training- and test data via DVC and “mlops-checkpoints” is used to store the checkpoints for the model after training.
+
 ![google-cloud-buckets](./figures/gc-buckets.png)
+
 ![google-cloud-bucket-content](./figures/gc-buckets-content.png)
 
 ### Question 20
@@ -392,6 +436,7 @@ The first folder that we have used from the cookiecutter template is data where 
 > Answer:
 
 [google-cloud-container-registry](./figures/gc-contrainer-registry.png)
+The main image we used for the project is github.com
 
 ### Question 21
 
@@ -416,7 +461,23 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
+Initially, we developed a FastAPI (/src/app), which would serve the model to an endpoint, where a user would supply an image, and a classification would be returned. After that would work, we decided that a Google Cloud Function would serve the same purpose as the FastAPI app in the cloud. Therefore, we chose to implement the cloud deployment as a served Google Cloud Function instead of Google Cloud Run. The model is deployed using a Google Cloud Trigger that is invoked upon a push to main. The trigger will then clone the repository and deploy the function via the Google Cloud CLI.
+
+To invoke the cloud service, one could call (with UNIX):
+
+```bash
+curl -X 'POST' \
+  'https://europe-west1-adept-lead-374308.cloudfunctions.net/mlops_predict' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'image=@{YOUR_DIRECTORY}/02476-mlo-awesome-2/cloud/samples/ship.png;type=image/png'
+```
+
+This command will yield the following result: 
+
 ![model-deployment-example](./figures/cloud-model-deployment-response.png)
+
+There are further samples and curl commands provided in the “/cloud/samples/” directory.
 
 ### Question 23
 
@@ -431,7 +492,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 23 fill here ---
+We did not manage to implement monitoring for our deployed model. Monitoring would have helped the longevity of our application by allowing us to measure various metrics such as accuracy, performance, and resource usage. These metrics would have informed us about the behavior of our application over time and would have helped us identify and resolve issues more quickly. Additionally, monitoring would have allowed us to detect and prevent potential issues before they became critical, which would have prevented downtime and ensured the continued availability of our application for our users. Overall, monitoring is an important aspect of maintaining a deployed model, and we will make sure to implement it in the future.
 
 ### Question 24
 
@@ -445,7 +506,9 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 24 fill here ---
+Based on our credits report, it appears that a total of $32.8 in credits were used during the project. The service that was most expensive was Cloud Storage with $26.16. The reason this cost so much in comparison to other services is that we used it most often, storing files in different buckets, but also the memory allocation to each bucket was 20GB. Other services such as Cloud Build, Compute Engine, and Networking topped up to $7 all together. 
+Overall discussion of project
+In the following section we would like you to think about the general structure of your project.
 
 ## Overall discussion of project
 
@@ -466,6 +529,14 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
+Training of the deep learning model is, with the current implementation, is done on a local machine. When training the model, the training process utilizes data stores in the cloud, which is managed using DVC. During training of the model, the training progress is logged and transmitted to Weights and Biases. We did intend to implement a way to utilize Vertex AI to perform model training. However, we experienced some difficulties to properly mount the Docker container on the cloud instance.
+
+When developing a new feature on the Github repository (Github domain of the diagram), it is developed in a separate branch, as rules have been setup to prevent pushing directly to ‘main’-branch. Upon committing new changes to a branch, pre-commits have been configured to handle certain linting issues, ensuring proper formatting. Once a feature is ready, a pull request (PR) towards the main branch is created. For the PR to be completed, at least one other developer must have approved the PR, all comments associated with the PR must be marked as ‘Resolved’, and the unit tests triggered by GitHub Actions must be completed without errors. This mitigates the chance of something breaking unexpectedly. Aside from the obvious advantages of this CI pipeline, we also save time, as deployment further down the pipeline is time consuming.
+
+Once a PR is merged with main, a trigger is invoked in Google Cloud. This trigger deploys the model to a Google Cloud Function (GCF) via the CLI. 
+
+The GFC is exposed to the public and can be invoked via ‘curl’ commands. Upon invocation, the deployed model will take the supplied image and classify it using the newest deployed model checkpoint in the “Model checkpoints”-bucket. Once the image is classified, it will be returned to the user.
+
 ![overall-architecture](./figures/mlops-solution.png)
 
 ### Question 26
@@ -480,7 +551,9 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 26 fill here ---
+A big struggle one of our group members had was with training the model on GCP using Vertex AI. In order to arrive at training with vertex AI there are a few services that need to be connected, Cloud Storage, Cloud Compute, Container Registry and Cloud Build. Some of these services highly depend on each other as for example Cloud Compute where we have the VM instances and the Container Registry where we deploy the docker image generated from Cloud Build. In the end we were not able to overcome this challenge and did not manage to train with Vertex AI. The root of the problem was in the container deployment. GPC would not allow the container to be deployed due to some PORT issues. Most probably the image was not built properly and not set the –expose option to listen to a port. This then created a domino effect leading to troubles running the training in the VM instance since it would not start because the container was not run on that VM instance. 
+
+Another issue was related to weights & biases experiments. When trying to run the train model from another computer we would run into a “PermissionError No13” (on MacOS). We solved this issue with the command “sudo wandb login” (superuser privileges) to login to the W&B platform. We didn’t include in the code an automatic workaround for that as we are the ones who train the model and we assume the end user don’t need to login to wandb to check for the model performance.
 
 ### Question 27
 
@@ -497,4 +570,10 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 27 fill here ---
+Student s174435 oversaw setting up cookie cutter project, along with the GitHub repository with the corresponding Github actions for the CI flow and initial data handling, formatting, and versioning through DVC. In addition, he focused on the deployment of the model and associated deployment flow.
+
+Student s210142 implemented a working model (training and prediction) and implemented logging of hyperparameters using hydra and wandb with subsequent report generation. 
+
+Student s213209 contributed to continuous integration and setting up the precommit. Assisted in weights and biases configuration. 
+
+Student s184432: Contributed to the data handler and data transformation for the model. Focused on setting up the Google Cloud Platform, created a bucket, several VM instances, Trigger, developed 2 docker containers intended for training the model with VertexAI. 
