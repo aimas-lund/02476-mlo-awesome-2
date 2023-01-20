@@ -113,7 +113,7 @@ end of the project.
 >
 > Answer:
 
-*s174435,s184432, s210142, s213209, 
+s174435, s184432, s210142, s213209, 
 
 ### Question 3
 > **What framework did you choose to work with and did it help you complete the project?**
@@ -307,6 +307,9 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
+[wandb-training-loss](./figures/wandb-training-loss.png)
+[wandb-tables](./figures/wandb-table.png)
+
 --- question 14 fill here ---
 
 ### Question 15
@@ -378,7 +381,8 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 19 fill here ---
+[google-cloud-buckets](./figures/gc-buckets.png)
+[google-cloud-bucket-content](./figures/gc-buckets-content.png)
 
 ### Question 20
 
@@ -387,7 +391,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 20 fill here ---
+[google-cloud-container-registry](./figures/gc-contrainer-registry.png)
 
 ### Question 21
 
@@ -396,7 +400,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 21 fill here ---
+[google-cloud-build-history](./figures/gc-build-history.png)
 
 ### Question 22
 
@@ -412,7 +416,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 22 fill here ---
+[model-deployment-example](./figures/cloud-model-deployment-response.png)
 
 ### Question 23
 
@@ -462,7 +466,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
---- question 25 fill here ---
+[overall-architecture](./figures/mlops-solution.png)
 
 ### Question 26
 
