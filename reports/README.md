@@ -435,7 +435,7 @@ We have actively used two buckets for data storage. “mlops-bucket-team-2” is
 >
 > Answer:
 
-[google-cloud-container-registry](./figures/gc-contrainer-registry.png)
+![google-cloud-container-registry](./figures/gc-contrainer-registry.png)
 The main image we used for the project is github.com
 
 ### Question 21
