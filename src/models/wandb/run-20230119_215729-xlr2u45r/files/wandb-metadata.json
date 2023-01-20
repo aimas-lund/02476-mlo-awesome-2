@@ -1,0 +1,50 @@
+{
+    "os": "Windows-10-10.0.22623-SP0",
+    "python": "3.10.4",
+    "heartbeatAt": "2023-01-19T20:57:31.199141",
+    "startedAt": "2023-01-19T20:57:29.930323",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "D:\\DTU\\MSc-Human_centered_AI\\SEMESTER_3\\02476_ML_OPS\\02476-mlo-awesome-2\\src\\models\\train_model.py",
+    "codePath": "src\\models\\train_model.py",
+    "git": {
+        "remote": "https://github.com/aimas-lund/02476-mlo-awesome-2.git",
+        "commit": "0aaa7839ed3f8a58b1032cc9fad74c37bce6b2d8"
+    },
+    "email": "mihainipomici@gmail.com",
+    "root": "D:/DTU/MSc-Human_centered_AI/SEMESTER_3/02476_ML_OPS/02476-mlo-awesome-2",
+    "host": "Mihai",
+    "username": "mihai",
+    "executable": "C:\\Users\\mihai\\anaconda3\\envs\\myenv\\python.exe",
+    "cpu_count": 4,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 1803.0,
+        "min": 0.0,
+        "max": 2304.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 1803.0,
+            "min": 0.0,
+            "max": 2304.0
+        }
+    ],
+    "disk": {
+        "total": 143.31542587280273,
+        "used": 106.49639892578125
+    },
+    "gpu": "NVIDIA GeForce MX330",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce MX330",
+            "memory_total": 2147483648
+        }
+    ],
+    "memory": {
+        "total": 15.705242156982422
+    }
+}
