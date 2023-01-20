@@ -307,8 +307,8 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
-[wandb-training-loss](./figures/wandb-training-loss.png)
-[wandb-tables](./figures/wandb-table.png)
+![wandb-training-loss](./figures/wandb-training-loss.png)
+![wandb-tables](./figures/wandb-table.png)
 
 --- question 14 fill here ---
 
@@ -381,8 +381,8 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
-[google-cloud-buckets](./figures/gc-buckets.png)
-[google-cloud-bucket-content](./figures/gc-buckets-content.png)
+![google-cloud-buckets](./figures/gc-buckets.png)
+![google-cloud-bucket-content](./figures/gc-buckets-content.png)
 
 ### Question 20
 
@@ -400,7 +400,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
-[google-cloud-build-history](./figures/gc-build-history.png)
+![google-cloud-build-history](./figures/gc-build-history.png)
 
 ### Question 22
 
@@ -416,7 +416,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
-[model-deployment-example](./figures/cloud-model-deployment-response.png)
+![model-deployment-example](./figures/cloud-model-deployment-response.png)
 
 ### Question 23
 
@@ -466,7 +466,7 @@ The first folder that we have used from the cookiecutter template is data where 
 >
 > Answer:
 
-[overall-architecture](./figures/mlops-solution.png)
+![overall-architecture](./figures/mlops-solution.png)
 
 ### Question 26
 
